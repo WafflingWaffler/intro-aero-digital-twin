@@ -99,7 +99,7 @@ Also make the calculated values available through the provided `stability.pitch.
 
 Before asking ChatGPT for code, complete each prediction in your own words.
 
-1. If `Cm_alpha < 0` and the angle-of-attack disturbance is positive, `delta_Cm` should be negative because Cm_alpha is delta_Cm divied by the angle of attack, and if the Cm_alpha is negtive, the delta_Cm should also be negative as the angle-of-attack is positive.
+1. If `Cm_alpha < 0` and the angle-of-attack disturbance is positive, delta_Cm should be negative because Cm_alpha is delta_Cm divied by the angle of attack, and if the Cm_alpha is negtive, the delta_Cm should also be negative as the angle-of-attack is positive.
 2. If `Cm_alpha > 0` and the angle-of-attack disturbance is positive, the response should be the aircraft pitching up and destabling more because positive Cm_alpha indicates poor stabilization and stalling as the angle of attack increases.
 3. If `Cm_alpha = 0`, changing angle of attack should remain the same.
 4. If `Cm0` is fixed and the magnitude of a nonzero `Cm_alpha` increases, the trim angle magnitude should decrease.
@@ -121,14 +121,14 @@ alpha_rad = 2.86pi/180 = 0.050
 delta_alpha_rad = 2pi/180 = 0.349
 
 Current pitching-moment coefficient:
-Cm(alpha) = -0.8*0.349 = -0.279
+Cm(alpha) = -0.8*0.05 = -0.04
 
 Trim angle:
-alpha_trim_rad = 
-alpha_trim_deg = [SHOW WORK]
+alpha_trim_rad = -Cm0/Cm(alpha) = -0.04/-0.8 = 0.05
+alpha_trim_deg = 0.05*180/pi = 2.865
 
 Disturbance response:
-delta_Cm = [SHOW WORK]
+delta_Cm = Cm(alpha)*delta_alpha_rad = -0.8*0.349 = 0.2792
 
 Expected classifications:
 selected condition = [trimmed / not trimmed]
