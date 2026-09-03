@@ -117,14 +117,14 @@ alpha = 2.86 deg
 delta_alpha = 2 deg
 
 Angle conversion:
-alpha_rad = 2.86pi/180 = 
-delta_alpha_rad = pi/9
+alpha_rad = 2.86pi/180 = 0.050
+delta_alpha_rad = 2pi/180 = 0.349
 
 Current pitching-moment coefficient:
-Cm(alpha) = [SHOW WORK]
+Cm(alpha) = -0.8*0.349 = -0.279
 
 Trim angle:
-alpha_trim_rad = [SHOW WORK]
+alpha_trim_rad = 
 alpha_trim_deg = [SHOW WORK]
 
 Disturbance response:
