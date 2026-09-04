@@ -99,9 +99,9 @@ Also make the calculated values available through the provided `stability.pitch.
 
 Before asking ChatGPT for code, complete each prediction in your own words.
 
-1. If `Cm_alpha < 0` and the angle-of-attack disturbance is positive, delta_Cm should be negative because Cm_alpha is delta_Cm divied by the angle of attack, and if the Cm_alpha is negtive, the delta_Cm should also be negative as the angle-of-attack is positive.
-2. If `Cm_alpha > 0` and the angle-of-attack disturbance is positive, the response should be the aircraft pitching up and destabling more because positive Cm_alpha indicates poor stabilization and stalling as the angle of attack increases.
-3. If `Cm_alpha = 0`, changing angle of attack should remain the same.
+1. If `Cm_alpha < 0` and the angle-of-attack disturbance is positive, delta_Cm should be negative because delta_Cm equals Cm_alpha multiplied by delta_alpha_rad, and a negative Cm_alpha times a positive delta_alpha_rad gives a negative product.
+2. If `Cm_alpha > 0` and the angle-of-attack disturbance is positive, the response should be the aircraft pitching up and destablizing more because positive Cm_alpha indicates poor stabilization and an increase in pitch.
+3. If `Cm_alpha = 0`, changing angle of attack should remain the same as Cm(alpha) would be unchanged.
 4. If `Cm0` is fixed and the magnitude of a nonzero Cm_alpha increases, the trim angle magnitude should decrease.
 5. Doubling `disturbanceAlphaDeg` while holding `Cm_alpha` fixed should double the delta_Cm.
 
@@ -118,21 +118,21 @@ delta_alpha = 2 deg
 
 Angle conversion:
 alpha_rad = 2.86pi/180 = 0.050
-delta_alpha_rad = 2pi/180 = 0.349
+delta_alpha_rad = 2pi/180 = 0.0349
 
 Current pitching-moment coefficient:
-Cm(alpha) = -0.8*0.05 = -0.04
+Cm(alpha) = Cm0+Cm_alpha*alpha_rad = 0.04+-0.8*0.05 = 0
 
 Trim angle:
 alpha_trim_rad = -Cm0/Cm_alpha = -0.04/-0.8 = 0.05
 alpha_trim_deg = 0.05*180/pi = 2.865
 
 Disturbance response:
-delta_Cm = Cm_alpha*delta_alpha_rad = -0.8*0.349 = -0.2792
+delta_Cm = Cm_alpha*delta_alpha_rad = -0.8*0.0349 = -0.02792 (Restoring)
 
 Expected classifications:
-selected condition = [trimmed / not trimmed]
-disturbance tendency = [restoring / neutral / destabilizing]
+selected condition = trimmed
+disturbance tendency = restoring
 ```
 
 ## 9. Verification Cases — STUDENT COMPLETES
@@ -144,74 +144,22 @@ Define all three cases before implementation. Include exact inputs, expected out
 Use your Section 8 reference calculation.
 
 ```text
-Case 1 Cm_alpha_ is positive:
 
-Cm0 = 0.04
-Cm_alpha = 0.8 1/rad
-alpha = 2.86 deg
-delta_alpha = 2 deg
+Inputs:
 
-Angle conversion:
-alpha_rad = 2.86pi/180 = 0.050
-delta_alpha_rad = 2pi/180 = 0.349
+cm0 = 0.04
+cmAlphaPerRad = -0.8
+angleOfAttackDeg = 2.86
+disturbanceAlphaDeg = 2
 
-Current pitching-moment coefficient:
-Cm(alpha) = 0.8*0.05 = 0.04
+Expected outputs:
 
-Trim angle:
-alpha_trim_rad = -Cm0/Cm(alpha) = -0.04/0.8 = -0.05
-alpha_trim_deg = -0.05*180/pi = -2.865
+Cm(alpha) = 0            (tolerance: ±0.0001)
+alpha_trim_deg = 2.865   (tolerance: ±0.01)
+delta_Cm = -0.02792      (tolerance: ±0.0001)
+selected condition = trimmed
+disturbance tendency = restoring
 
-Disturbance response:
-delta_Cm = Cm(alpha)*delta_alpha_rad = 0.8*0.349 = 0.2792
-
-This means that the aircraft will keep pitching up and stall.
-
-Case 2 Cm_alpha is negative:
-
-Cm0 = 0.04
-Cm_alpha = -0.8 1/rad
-alpha = 2.86 deg
-delta_alpha = 2 deg
-
-Angle conversion:
-alpha_rad = 2.86pi/180 = 0.050
-delta_alpha_rad = 2pi/180 = 0.349
-
-Current pitching-moment coefficient:
-Cm(alpha) = -0.8*0.05 = -0.04
-
-Trim angle:
-alpha_trim_rad = -Cm0/Cm_alpha = -0.04/-0.8 = 0.05
-alpha_trim_deg = 0.05*180/pi = 2.865
-
-Disturbance response:
-delta_Cm = Cm_alpha*delta_alpha_rad = -0.8*0.349 = -0.2792
-
-This means that the aircraft will pitch down and stabilize to trim.
-
-Case 3 Cm_alpha is zero:
-
-Cm0 = 0.04
-Cm_alpha = 0 1/rad
-alpha = 2.86 deg
-delta_alpha = 2 deg
-
-Angle conversion:
-alpha_rad = 2.86pi/180 = 0.050
-delta_alpha_rad = 2pi/180 = 0.349
-
-Current pitching-moment coefficient:
-Cm(alpha) = 0*0.05 = 0
-
-Trim angle:
-alpha_trim_rad = -Cm0/Cm_alpha = -0.04/0 = infinity (does not exist)
-alpha_trim_deg = infinity*180/pi = infinity (does not exist)
-
-Disturbance response:
-delta_Cm = Cm_alpha*delta_alpha_rad = 0*0.349 = 0
-
-This means that the aircraft will neither pitch down or up and remain at the same angle of attack
 ```
 
 ### 9.2 Behavioral case
@@ -219,7 +167,22 @@ This means that the aircraft will neither pitch down or up and remain at the sam
 Change one input and state the exact trend or sign that must result.
 
 ```text
-[COMPLETE]
+
+Baseline (from Section 8):
+
+delta_alpha = 2 deg → delta_Cm = -0.02792
+
+Changed case:
+
+delta_alpha = 8 deg (all other inputs unchanged: cm0 = 0.04, cmAlphaPerRad = -0.8, angleOfAttackDeg = 2.86)
+
+delta_alpha_rad = 8 * pi/180 = 0.1396
+delta_Cm = -0.8 * 0.1396 = -0.1117   (tolerance: ±0.0001)
+
+Expected trend:
+
+delta_Cm becomes more negative (from -0.02792 to -0.1117) as delta_alpha increases, since delta_Cm is directly proportional to delta_alpha_rad with a fixed negative Cm_alpha. The magnitude of delta_Cm must increase (|-0.1117| > |-0.02792|), confirming the restoring response grows stronger as the disturbance grows.
+
 ```
 
 ### 9.3 Boundary or sanity case
@@ -227,7 +190,24 @@ Change one input and state the exact trend or sign that must result.
 Use an informative boundary such as zero slope, zero disturbance, or the trim condition. State the exact behavior expected and why division by zero or a false physical claim must not occur.
 
 ```text
-[COMPLETE]
+
+Inputs:
+
+Cm0 = 0.04
+Cm_alpha = 0 1/rad
+alpha = 2.86 deg
+delta_alpha = 2 deg
+
+Expected behavior:
+
+Cm(alpha) = cm0 = 0.04 (unchanged regardless of alpha, since Cm_alpha = 0)
+
+Trim angle: does not exist because alpha_trim_rad = -Cm0/Cm_alpha requires dividing by Cm_alpha which is zero here. 
+
+delta_Cm = Cm_alpha*delta_alpha_rad = 0*any value = 0
+
+Disturbance tendency: neutral (delta_alpha_rad*delta_Cm = 0)
+
 ```
 
 ## 10. Feature Requirements
@@ -263,7 +243,9 @@ Do not modify any existing file.
 In one or two sentences, state what decision the completed feature will support and what it cannot establish.
 
 ```text
-[COMPLETE]
+
+This feature lets an engineer check, at a chosen angle of attack, whether the aircraft's pitching moment is trimmed and whether a small alpha change produces a restoring or destabilizing tendency under the linear Cm-alpha model. It cannot establish whether the aircraft is safe, controllable, or flightworthy, and it says nothing about behavior near stall or the actual time response and damping of a disturbance.
+
 ```
 
 ---
