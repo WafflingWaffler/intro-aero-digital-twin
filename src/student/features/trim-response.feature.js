@@ -225,7 +225,6 @@ export const feature = {
 export const model = {
   kind: "derived",
   evaluate(runtimeContext) {
-    requireCapability(runtimeContext.capabilities);
     const analysis = analyzeTrimResponse(runtimeContext.aircraft);
 
     return {
