@@ -20,8 +20,10 @@ function hasRequiredCapability(capabilityContext) {
     );
   }
 
-  const capability = capabilities?.[REQUIRED_CAPABILITY.id];
-  return capability?.version >= REQUIRED_CAPABILITY.version;
+  return (
+    capabilities?.[REQUIRED_CAPABILITY.id]?.version
+    >= REQUIRED_CAPABILITY.version
+  );
 }
 
 function requireCapability(capabilityContext) {
@@ -50,16 +52,17 @@ function createPlotPoints(aircraft) {
 }
 
 function createVerificationCases() {
-  const numericalInput = {
+  const numerical = analyzeTrimResponse({
     cm0: 0.04,
     cmAlphaPerRad: -0.8,
     angleOfAttackDeg: 2.86,
     disturbanceAlphaDeg: 2,
-  };
-  const numerical = analyzeTrimResponse(numericalInput);
+  });
 
   const behavioral = analyzeTrimResponse({
-    ...numericalInput,
+    cm0: 0.04,
+    cmAlphaPerRad: -0.8,
+    angleOfAttackDeg: 2.86,
     disturbanceAlphaDeg: 8,
   });
 
@@ -74,16 +77,16 @@ function createVerificationCases() {
     {
       name: "Numerical reference case",
       passed:
-        Math.abs(numerical.cmAtAlpha) <= 0.0001
-        && Math.abs(numerical.trimAngleDeg - 2.865) <= 0.01
-        && Math.abs(numerical.deltaCm - (-0.02792)) <= 0.0001
-        && numerical.trimmed
+        Math.abs(numerical.cmAtAlpha - 0.000067) <= 0.000001
+        && Math.abs(numerical.trimAngleDeg - 2.864789) <= 0.0001
+        && Math.abs(numerical.deltaCm - (-0.027925)) <= 0.000001
+        && !numerical.trimmed
         && numerical.disturbanceTendency === "restoring",
     },
     {
       name: "Behavioral disturbance case",
       passed:
-        Math.abs(behavioral.deltaCm - (-0.1117)) <= 0.0001
+        Math.abs(behavioral.deltaCm - (-0.111701)) <= 0.000001
         && behavioral.deltaCm < numerical.deltaCm
         && Math.abs(behavioral.deltaCm) > Math.abs(numerical.deltaCm)
         && behavioral.disturbanceTendency === "restoring",
@@ -91,9 +94,9 @@ function createVerificationCases() {
     {
       name: "Zero-slope boundary case",
       passed:
-        boundary.cmAtAlpha === 0.04
+        Math.abs(boundary.cmAtAlpha - 0.04) <= 0.000001
         && boundary.trimAngleDeg === null
-        && boundary.deltaCm === 0
+        && Math.abs(boundary.deltaCm) <= 0.000001
         && boundary.disturbanceTendency === "neutral",
     },
   ];
@@ -112,7 +115,7 @@ function createResults(analysis) {
       label: "Trim angle",
       value: analysis.trimAngleDeg ?? "not available",
       unit: analysis.trimAngleDeg === null ? "" : "deg",
-      precision: 3,
+      precision: 6,
     },
     {
       label: "Disturbance delta_Cm",
@@ -152,12 +155,12 @@ export const feature = {
   providesCapabilities: [{ id: "stability.pitch.cm-alpha", version: 1 }],
   assumptions: [
     "The Cm–alpha relationship is linear over the investigated range.",
-    "The model is quasi-static and uses a small disturbance about the selected condition.",
+    "The model is quasi-static and represents a small disturbance.",
     "Cm0 and Cm_alpha represent the same aircraft configuration and flight condition.",
   ],
   validityLimits: [
-    "Do not use at stall, large angle of attack, or strongly nonlinear aerodynamic conditions.",
-    "This does not predict time response, damping, control motion, or handling quality.",
+    "Do not use at stall, large angle of attack, or strongly nonlinear conditions.",
+    "The model does not calculate time response, damping, control motion, or handling quality.",
     "A restoring tendency does not establish safety, controllability, or flightworthiness.",
   ],
   simulation: {
@@ -172,12 +175,12 @@ export const feature = {
     requireCapability(capabilityContext);
     const analysis = analyzeTrimResponse(aircraft);
 
-    const interpretation =
+    const tendencyInterpretation =
       analysis.disturbanceTendency === "restoring"
-        ? "The small disturbance produces a restoring pitching-moment tendency under this linear, quasi-static model."
+        ? "The disturbance creates a restoring pitching-moment tendency under this linear, quasi-static model."
         : analysis.disturbanceTendency === "destabilizing"
-          ? "The small disturbance produces a destabilizing pitching-moment tendency under this linear, quasi-static model."
-          : "The small disturbance produces a neutral pitching-moment tendency under this linear, quasi-static model.";
+          ? "The disturbance creates a destabilizing pitching-moment tendency under this linear, quasi-static model."
+          : "The disturbance creates a neutral pitching-moment tendency under this linear, quasi-static model.";
 
     return {
       results: createResults(analysis),
@@ -185,9 +188,9 @@ export const feature = {
       decision: {
         question:
           "At the selected angle of attack, is the simplified pitching-moment model trimmed, and does a small angle-of-attack disturbance create a restoring moment tendency?",
-        interpretation: `${analysis.trimmed ? "The selected condition is trimmed." : "The selected condition is not trimmed."} ${interpretation}`,
+        interpretation: `${analysis.trimmed ? "The selected condition is trimmed." : "The selected condition is not trimmed."} ${tendencyInterpretation}`,
         status:
-          analysis.disturbanceTendency === "restoring"
+          analysis.trimmed && analysis.disturbanceTendency === "restoring"
             ? "pass"
             : analysis.disturbanceTendency === "neutral"
               ? "neutral"
@@ -222,6 +225,7 @@ export const feature = {
 export const model = {
   kind: "derived",
   evaluate(runtimeContext) {
+    requireCapability(runtimeContext.capabilities);
     const analysis = analyzeTrimResponse(runtimeContext.aircraft);
 
     return {
@@ -230,12 +234,10 @@ export const model = {
         deltaCm: analysis.deltaCm,
         trimmed: analysis.trimmed,
         disturbanceTendency: analysis.disturbanceTendency,
+        trimAngleAvailable: analysis.trimAngleDeg !== null,
         ...(analysis.trimAngleDeg === null
-          ? { trimAngleAvailable: false }
-          : {
-              trimAngleAvailable: true,
-              trimAngleDeg: analysis.trimAngleDeg,
-            }),
+          ? {}
+          : { trimAngleDeg: analysis.trimAngleDeg }),
       },
     };
   },

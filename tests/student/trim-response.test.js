@@ -10,10 +10,16 @@ describe("trim-response physics", () => {
       disturbanceAlphaDeg: 2,
     });
 
-    expect(result.cmAtAlpha).toBeCloseTo(0, 4);
-    expect(result.trimAngleDeg).toBeCloseTo(2.865, 2);
-    expect(result.deltaCm).toBeCloseTo(-0.02792, 4);
-    expect(result.trimmed).toBe(true);
+    expect(Math.abs(result.cmAtAlpha - 0.000067)).toBeLessThanOrEqual(
+      0.000001,
+    );
+    expect(Math.abs(result.trimAngleDeg - 2.864789)).toBeLessThanOrEqual(
+      0.0001,
+    );
+    expect(Math.abs(result.deltaCm - (-0.027925))).toBeLessThanOrEqual(
+      0.000001,
+    );
+    expect(result.trimmed).toBe(false);
     expect(result.disturbanceTendency).toBe("restoring");
   });
 
@@ -31,7 +37,9 @@ describe("trim-response physics", () => {
       disturbanceAlphaDeg: 8,
     });
 
-    expect(changed.deltaCm).toBeCloseTo(-0.1117, 4);
+    expect(Math.abs(changed.deltaCm - (-0.111701))).toBeLessThanOrEqual(
+      0.000001,
+    );
     expect(changed.deltaCm).toBeLessThan(baseline.deltaCm);
     expect(Math.abs(changed.deltaCm)).toBeGreaterThan(
       Math.abs(baseline.deltaCm),
@@ -47,9 +55,9 @@ describe("trim-response physics", () => {
       disturbanceAlphaDeg: 2,
     });
 
-    expect(result.cmAtAlpha).toBe(0.04);
+    expect(Math.abs(result.cmAtAlpha - 0.04)).toBeLessThanOrEqual(0.000001);
     expect(result.trimAngleDeg).toBeNull();
-    expect(result.deltaCm).toBe(0);
+    expect(Math.abs(result.deltaCm)).toBeLessThanOrEqual(0.000001);
     expect(result.disturbanceTendency).toBe("neutral");
   });
 });
