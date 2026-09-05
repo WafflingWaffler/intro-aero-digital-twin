@@ -110,6 +110,7 @@ Before asking ChatGPT for code, complete each prediction in your own words.
 Use the assigned class values or values approved by your instructor. Show the substitution, degree-to-radian conversion, calculation, sign, and units. Do not paste an AI-generated calculation.
 
 ```text
+
 Inputs:
 Cm0 = 0.04
 Cm_alpha = -0.8 1/rad
@@ -117,22 +118,23 @@ alpha = 2.86 deg
 delta_alpha = 2 deg
 
 Angle conversion:
-alpha_rad = 2.86pi/180 = 0.050
-delta_alpha_rad = 2pi/180 = 0.0349
+alpha_rad = 2.86*pi/180 = 0.049916
+delta_alpha_rad = 2*pi/180 = 0.034907
 
 Current pitching-moment coefficient:
-Cm(alpha) = Cm0+Cm_alpha*alpha_rad = 0.04+-0.8*0.05 = 0
+Cm(alpha) = Cm0+Cm_alpha*alpha_rad = 0.04+(-0.8*0.049916) = 0.000067
 
 Trim angle:
-alpha_trim_rad = -Cm0/Cm_alpha = -0.04/-0.8 = 0.05
-alpha_trim_deg = 0.05*180/pi = 2.865
+alpha_trim_rad = -Cm0/Cm_alpha = -0.04/-0.8 = 0.050000
+alpha_trim_deg = 0.05*180/pi = 2.864789
 
 Disturbance response:
-delta_Cm = Cm_alpha*delta_alpha_rad = -0.8*0.0349 = -0.02792 (Restoring)
+delta_Cm = Cm_alpha*delta_alpha_rad = -0.8*0.034907 = -0.027925 (Restoring)
 
 Expected classifications:
-selected condition = trimmed
+selected condition = not trimmed
 disturbance tendency = restoring
+
 ```
 
 ## 9. Verification Cases — STUDENT COMPLETES
@@ -154,10 +156,10 @@ disturbanceAlphaDeg = 2
 
 Expected outputs:
 
-Cm(alpha) = 0            (tolerance: ±0.0001)
-alpha_trim_deg = 2.865   (tolerance: ±0.01)
-delta_Cm = -0.02792      (tolerance: ±0.0001)
-selected condition = trimmed
+Cm(alpha) = 0.000067        (tolerance: ±0.000001)
+alpha_trim_deg = 2.864789   (tolerance: ±0.0001)
+delta_Cm = -0.027925        (tolerance: ±0.000001)
+selected condition = not trimmed
 disturbance tendency = restoring
 
 ```
@@ -169,19 +171,16 @@ Change one input and state the exact trend or sign that must result.
 ```text
 
 Baseline (from Section 8):
-
-delta_alpha = 2 deg → delta_Cm = -0.02792
+delta_alpha = 2 deg results in delta_Cm = -0.027925
 
 Changed case:
-
 delta_alpha = 8 deg (all other inputs unchanged: cm0 = 0.04, cmAlphaPerRad = -0.8, angleOfAttackDeg = 2.86)
 
-delta_alpha_rad = 8 * pi/180 = 0.1396
-delta_Cm = -0.8 * 0.1396 = -0.1117   (tolerance: ±0.0001)
+delta_alpha_rad = 8*pi/180 = 0.139626
+delta_Cm = -0.8*0.139626 = -0.111701   (tolerance: ±0.000001)
 
 Expected trend:
-
-delta_Cm becomes more negative (from -0.02792 to -0.1117) as delta_alpha increases, since delta_Cm is directly proportional to delta_alpha_rad with a fixed negative Cm_alpha. The magnitude of delta_Cm must increase (|-0.1117| > |-0.02792|), confirming the restoring response grows stronger as the disturbance grows.
+delta_Cm becomes more negative (from -0.027925 to -0.111701) as delta_alpha increases, since delta_Cm is directly proportional to delta_alpha_rad with a fixed negative Cm_alpha. The magnitude of delta_Cm must increase (|-0.111701| > |-0.027925|), confirming the restoring response grows stronger as the disturbance grows.
 
 ```
 
@@ -192,19 +191,17 @@ Use an informative boundary such as zero slope, zero disturbance, or the trim co
 ```text
 
 Inputs:
-
 Cm0 = 0.04
 Cm_alpha = 0 1/rad
 alpha = 2.86 deg
 delta_alpha = 2 deg
 
 Expected behavior:
+Cm(alpha) = cm0 = 0.040000 (unchanged regardless of alpha, since Cm_alpha = 0)   (tolerance: ±0.000001)
 
-Cm(alpha) = cm0 = 0.04 (unchanged regardless of alpha, since Cm_alpha = 0)
+Trim angle: does not exist because alpha_trim_rad = -Cm0/Cm_alpha requires dividing by Cm_alpha, which is zero here.
 
-Trim angle: does not exist because alpha_trim_rad = -Cm0/Cm_alpha requires dividing by Cm_alpha which is zero here. 
-
-delta_Cm = Cm_alpha*delta_alpha_rad = 0*any value = 0
+delta_Cm = Cm_alpha*delta_alpha_rad = 0*any value = 0.000000   (tolerance: ±0.000001)
 
 Disturbance tendency: neutral (delta_alpha_rad*delta_Cm = 0)
 
@@ -244,7 +241,7 @@ In one or two sentences, state what decision the completed feature will support 
 
 ```text
 
-This feature lets an engineer check, at a chosen angle of attack, whether the aircraft's pitching moment is trimmed and whether a small alpha change produces a restoring or destabilizing tendency under the linear Cm-alpha model. It cannot establish whether the aircraft is safe, controllable, or flightworthy, and it says nothing about behavior near stall or the actual time response and damping of a disturbance.
+This feature lets an engineer check, at a chosen angle of attack, whether the aircraft's pitching moment is trimmed and whether a small alpha change produces a restoring or destabilizing tendency under the linear Cm_alpha model. It cannot establish whether the aircraft is safe, controllable, or flightworthy, and it says nothing about behavior near stall or the actual time response and damping of a disturbance.
 
 ```
 
